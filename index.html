@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GorillaOS — Linux for the Fearless</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #f0f0f0;
+    --text2: #888;
+    --text3: #555;
+    --accent: #39ff14;
+    --accent2: #00d4ff;
+    --card: #141414;
+    --nav-bg: rgba(10,10,10,0.85);
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f5f0;
+    --bg2: #ebebeb;
+    --bg3: #e0e0e0;
+    --border: #d0d0d0;
+    --text: #0a0a0a;
+    --text2: #555;
+    --text3: #999;
+    --accent: #1a8a00;
+    --accent2: #0066aa;
+    --card: #ffffff;
+    --nav-bg: rgba(245,245,240,0.85);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: var(--nav-bg);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--text); }
+  .nav-links { display: flex; gap: 2rem; align-items: center; }
+  .nav-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text2);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .theme-toggle {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 100px 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.4;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
+  }
+  .hero-glow {
+    position: absolute; top: 20%; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(57,255,20,0.08) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 800px; }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 0.35rem 1rem;
+    border-radius: 2px;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.1s forwards;
+  }
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(5rem, 15vw, 11rem);
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    margin-bottom: 0.2em;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.2s forwards;
+  }
+  .hero-title .accent { color: var(--accent); }
+
+  .hero-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text2);
+    letter-spacing: 0.05em;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.35s forwards;
+  }
+
+  .hero-desc {
+    font-size: 1.1rem;
+    color: var(--text2);
+    line-height: 1.7;
+    max-width: 520px;
+    margin: 0 auto 3rem;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.45s forwards;
+  }
+
+  .hero-btns {
+    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.55s forwards;
+  }
+  .btn-primary {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.9rem 2.5rem;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.15);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover::after { opacity: 1; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(57,255,20,0.3); }
+
+  .btn-secondary {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.9rem 2.5rem;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+  /* ── ASCII ART ── */
+  .ascii-section {
+    padding: 2rem 0 4rem;
+    display: flex; justify-content: center;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.7s forwards;
+  }
+  .ascii-art {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.35rem, 0.9vw, 0.6rem);
+    line-height: 1.2;
+    color: var(--accent);
+    white-space: pre;
+    opacity: 0.7;
+    user-select: none;
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 2rem;
+    display: flex; justify-content: center; gap: 0;
+    flex-wrap: wrap;
+    background: var(--bg2);
+  }
+  .stat {
+    flex: 1; min-width: 150px; max-width: 220px;
+    text-align: center;
+    padding: 1rem 2rem;
+    border-right: 1px solid var(--border);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-top: 0.4rem;
+  }
+
+  /* ── SECTIONS ── */
+  section { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
+
+  .section-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    margin-bottom: 1.5rem;
+  }
+  .section-body {
+    font-size: 1rem;
+    color: var(--text2);
+    line-height: 1.8;
+    max-width: 600px;
+    font-weight: 300;
+  }
+
+  /* ── FEATURES ── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 4rem;
+  }
+  .feature-card {
+    background: var(--card);
+    padding: 2.5rem;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .feature-card:hover::before { transform: scaleX(1); }
+  .feature-card:hover { background: var(--bg3); }
+  .feature-icon {
+    font-size: 1.8rem;
+    margin-bottom: 1.2rem;
+    display: block;
+  }
+  .feature-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.8rem;
+    color: var(--text);
+  }
+  .feature-desc {
+    font-size: 0.9rem;
+    color: var(--text2);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* ── DE SECTION ── */
+  .de-section { padding: 6rem 2rem; background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .de-inner { max-width: 1100px; margin: 0 auto; }
+  .de-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 4rem;
+  }
+  @media (max-width: 700px) { .de-grid { grid-template-columns: 1fr; } }
+  .de-card {
+    border: 1px solid var(--border);
+    background: var(--card);
+    padding: 3rem;
+    position: relative;
+    transition: all 0.2s;
+    overflow: hidden;
+  }
+  .de-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.3); }
+  .de-card-badge {
+    position: absolute; top: 1.5rem; right: 1.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 2px;
+  }
+  .de-icon { font-size: 3rem; margin-bottom: 1.5rem; display: block; }
+  .de-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+  .de-tagline {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+  }
+  .de-desc { font-size: 0.9rem; color: var(--text2); line-height: 1.7; font-weight: 300; }
+  .de-features {
+    list-style: none;
+    margin-top: 1.5rem;
+    display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  .de-features li {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text2);
+    padding-left: 1.2rem;
+    position: relative;
+  }
+  .de-features li::before { content: '›'; position: absolute; left: 0; color: var(--accent); }
+
+  /* ── DOWNLOAD ── */
+  .download-section {
+    padding: 6rem 2rem;
+    max-width: 1100px; margin: 0 auto;
+    text-align: center;
+  }
+  .download-box {
+    border: 1px solid var(--border);
+    background: var(--card);
+    padding: 4rem 3rem;
+    position: relative;
+    overflow: hidden;
+    max-width: 680px;
+    margin: 4rem auto 0;
+  }
+  .download-box::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .download-version {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text3);
+    margin-bottom: 1rem;
+  }
+  .download-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+  .download-meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text3);
+    margin-bottom: 2.5rem;
+    display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
+  }
+  .download-meta span { color: var(--accent); }
+  .btn-download {
+    display: inline-flex; align-items: center; gap: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1.1rem 3rem;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    width: 100%;
+    justify-content: center;
+    max-width: 360px;
+  }
+  .btn-download:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(57,255,20,0.3); }
+  .btn-download svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .download-note {
+    font-size: 0.8rem;
+    color: var(--text3);
+    margin-top: 1.5rem;
+    font-family: 'Space Mono', monospace;
+  }
+  .download-checklist {
+    list-style: none;
+    margin-top: 2rem;
+    text-align: left;
+    display: inline-flex; flex-direction: column; gap: 0.6rem;
+  }
+  .download-checklist li {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text2);
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .download-checklist li::before { content: '✓'; color: var(--accent); font-weight: 700; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 2rem;
+    text-align: center;
+    background: var(--bg2);
+  }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+  .footer-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 2rem;
+  }
+  .footer-links {
+    display: flex; justify-content: center; gap: 2rem;
+    flex-wrap: wrap; margin-bottom: 2rem;
+  }
+  .footer-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text3);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--accent); }
+  .footer-copy {
+    font-size: 0.75rem;
+    color: var(--text3);
+  }
+
+  /* ── TERMINAL BLOCK ── */
+  .terminal {
+    background: #0d0d0d;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4rem;
+    font-family: 'Space Mono', monospace;
+  }
+  [data-theme="light"] .terminal { background: #1a1a1a; }
+  .terminal-bar {
+    background: #1e1e1e;
+    padding: 0.75rem 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  .t-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .t-red { background: #ff5f57; }
+  .t-yellow { background: #febc2e; }
+  .t-green { background: #28c840; }
+  .terminal-title {
+    font-size: 0.7rem;
+    color: #555;
+    margin-left: auto; margin-right: auto;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .terminal-body { padding: 1.5rem; }
+  .t-line {
+    font-size: 0.78rem;
+    line-height: 1.8;
+    color: #888;
+  }
+  .t-prompt { color: #39ff14; }
+  .t-cmd { color: #f0f0f0; }
+  .t-out { color: #666; }
+  .t-accent { color: #00d4ff; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.6s, transform 0.6s;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .nav-links { display: none; }
+    .stat { min-width: 120px; }
+    .download-box { padding: 2.5rem 1.5rem; }
+  }
+
+  /* ── ABOUT ── */
+  .about-section { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 4rem;
+  }
+  @media (max-width: 700px) { .about-grid { grid-template-columns: 1fr; } }
+  .about-card {
+    border: 1px solid var(--border);
+    background: var(--card);
+    padding: 3rem;
+    position: relative;
+    transition: all 0.2s;
+  }
+  .about-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.3); }
+  .about-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--bg3);
+    border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .about-handle {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.3rem;
+  }
+  .about-role {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 1.2rem;
+  }
+  .about-bio { font-size: 0.9rem; color: var(--text2); line-height: 1.7; font-weight: 300; margin-bottom: 2rem; }
+  .about-links { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .about-link {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    text-decoration: none;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .about-link:hover { border-color: var(--accent); color: var(--accent); }
+  .about-placeholder {
+    border: 1px dashed var(--border);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 1rem;
+    min-height: 280px;
+    color: var(--text3);
+  }
+  .about-placeholder-icon { font-size: 2.5rem; opacity: 0.3; }
+  .about-placeholder-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Gorilla<span>OS</span></a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#desktop">Desktop</a>
+    <a href="#download">Download</a>
+    <a href="#about">About</a>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">☀</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-badge">Arch-Based · CachyOS Kernel · Rolling Release</div>
+    <h1 class="hero-title"><span class="accent">Gorilla</span>OS</h1>
+    <p class="hero-sub">// Linux for the Fearless — by RiderX9</p>
+    <p class="hero-desc">
+      A lean, unbloated Arch-based distribution powered by the optimized CachyOS kernel.
+      Built for speed, designed with purpose. No bloat. No compromises.
+    </p>
+    <div class="hero-btns">
+      <a href="#download" class="btn-primary">Download Now</a>
+      <a href="#features" class="btn-secondary">Learn More</a>
+    </div>
+  </div>
+</div>
+
+<!-- ASCII -->
+<div class="ascii-section">
+  <pre class="ascii-art">
+              $*%%%%%%W8h
+            %%%bM.%d%%w%%%B%            
+         }\%%pY          $#%%|,         
+         %%%$               B%%
+       bW%J                  1a&*
+      @B&J                     x%%
+     %%$                        &%!    
+    8%o                          B%%    
+   #%v                           %Md#
+  %%M    {0U_               +w[    t%%  
+ B%:   pM%B%%B%k8W>  ?mBm%%%%%B%%   8%8 
+ %88   %%%%%%B%%B%%%%%%%%%B%%%%%%n  ^Q#'
+ B%8   BBh C%U%%BB*koM%B%%YBp kB%'  8%% 
+ 0&#   k%#|     ]0bzB>Z_     !*%%   0&#
+   $%%                            $%%
+%%q    /%%%Q%B%h|X<  -c{8%B%Z%%%#    $%8
+/]      %%%%%B%&B&%%%%W%&hB%%%Bm:     %B
+af        h%%>%J  >koz  W8;<%8@        &
+C            8w%%8****%BBkk            0
+           B%%BB%BBBB%%%BB%%&           
+          B%%%BBBB%B%BB%%%B%           
+          1%BBBBBB%%B%B%%BB%%8          
+          >%BBX*--------*ba%%p
+           h%%BBBBBBBBB%B%%B&           
+             v%BBBBB%B%BB%B             
+               ]8&B%BB&%#
+  </pre>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num">2</div>
+    <div class="stat-label">Desktop Environments</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">0</div>
+    <div class="stat-label">Bloat Included</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">∞</div>
+    <div class="stat-label">Rolling Updates</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">1</div>
+    <div class="stat-label">Passion Project</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="reveal">
+    <p class="section-tag">// Why GorillaOS</p>
+    <h2 class="section-title">Built Different</h2>
+    <p class="section-body">
+      GorillaOS strips away everything you don't need and keeps everything you do.
+      Powered by the CachyOS-optimized kernel for real-world performance gains
+      out of the box.
+    </p>
+  </div>
+
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <span class="feature-icon">⚡</span>
+      <div class="feature-title">CachyOS Kernel</div>
+      <p class="feature-desc">The optimized CachyOS kernel delivers measurably better performance, lower latency and improved responsiveness compared to stock Linux kernels.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🦍</span>
+      <div class="feature-title">Zero Bloat</div>
+      <p class="feature-desc">No preinstalled junk, no telemetry, no nonsense. Every package included has a reason to be there. Your system, your rules.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🔄</span>
+      <div class="feature-title">Rolling Release</div>
+      <p class="feature-desc">Built on Arch Linux. Install once and stay up to date forever. Always on the latest software with no major version upgrades needed.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🖥️</span>
+      <div class="feature-title">Your Desktop, Your Choice</div>
+      <p class="feature-desc">GorillaOS ships with both GNOME and KDE Plasma. Choose your preferred environment during installation — both are fully supported.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🛠️</span>
+      <div class="feature-title">Arch Foundation</div>
+      <p class="feature-desc">The full Arch Linux ecosystem at your fingertips. Access the AUR, pacman, and decades of community knowledge and documentation.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🎯</span>
+      <div class="feature-title">Guided Installer</div>
+      <p class="feature-desc">A simple, custom installer walks you through setup in minutes. No Arch expertise required — just answer a few questions and go.</p>
+    </div>
+  </div>
+
+  <!-- Terminal -->
+  <div class="terminal reveal">
+    <div class="terminal-bar">
+      <div class="t-dot t-red"></div>
+      <div class="t-dot t-yellow"></div>
+      <div class="t-dot t-green"></div>
+      <span class="terminal-title">Rider@GorillaOS</span>
+    </div>
+    <div class="terminal-body">
+      <div class="t-line"><span class="t-prompt">$</span> <span class="t-cmd">fastfetch</span></div>
+      <div class="t-line"><span class="t-out">Wagwan, welcome to GorillaOS, drilla.</span></div>
+      <div class="t-line">&nbsp;</div>
+      <div class="t-line"><span class="t-accent">OS</span>       <span class="t-out">&gt; GorillaOS Linux x86_64</span></div>
+      <div class="t-line"><span class="t-accent">Kernel</span>   <span class="t-out">&gt; Linux 7.0.10-2-CachyOS</span></div>
+      <div class="t-line"><span class="t-accent">DE</span>       <span class="t-out">&gt; GNOME 50 / KDE Plasma 6.6</span></div>
+      <div class="t-line"><span class="t-accent">Shell</span>    <span class="t-out">&gt; bash 5.3</span></div>
+      <div class="t-line"><span class="t-accent">Packages</span> <span class="t-out">&gt; 791 (pacman)</span></div>
+      <div class="t-line"><span class="t-accent">Memory</span>   <span class="t-out">&gt; 950 MiB / 8.00 GiB</span></div>
+      <div class="t-line">&nbsp;</div>
+      <div class="t-line"><span class="t-prompt">$</span> <span class="t-cmd">uname -r</span></div>
+      <div class="t-line"><span class="t-out">7.0.10-2-CachyOS</span></div>
+      <div class="t-line">&nbsp;</div>
+      <div class="t-line"><span class="t-prompt">$</span> <span class="t-cmd">pacman -Syu</span></div>
+      <div class="t-line"><span class="t-out">:: Synchronizing package databases...</span></div>
+      <div class="t-line"><span class="t-accent"> core is up to date</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- DESKTOP ENVIRONMENTS -->
+<div class="de-section" id="desktop">
+  <div class="de-inner">
+    <div class="reveal">
+      <p class="section-tag">// Choose Your Environment</p>
+      <h2 class="section-title">Two Desktops.<br>One Installer.</h2>
+      <p class="section-body">
+        During installation GorillaOS gives you a choice. Pick the desktop that suits your workflow — you can't go wrong with either.
+      </p>
+    </div>
+
+    <div class="de-grid reveal">
+      <div class="de-card">
+        <span class="de-card-badge">Option 1</span>
+        <span class="de-icon">🔵</span>
+        <div class="de-name">GNOME</div>
+        <div class="de-tagline">Clean · Modern · Focused</div>
+        <p class="de-desc">GNOME offers a distraction-free, touch-friendly desktop with a clean aesthetic and powerful extensions ecosystem. Perfect if you want a modern, streamlined experience.</p>
+        <ul class="de-features">
+          <li>Activities overview &amp; app grid</li>
+          <li>Wayland-native by default</li>
+          <li>Huge extensions library</li>
+          <li>GNOME 50 included</li>
+        </ul>
+      </div>
+      <div class="de-card">
+        <span class="de-card-badge">Option 2</span>
+        <span class="de-icon">🟦</span>
+        <div class="de-name">KDE Plasma</div>
+        <div class="de-tagline">Powerful · Customizable · Fast</div>
+        <p class="de-desc">KDE Plasma is endlessly customizable, feature-rich and surprisingly lightweight. If you like having everything exactly the way you want it, Plasma is for you.</p>
+        <ul class="de-features">
+          <li>Unmatched customization</li>
+          <li>KDE Plasma 6.6 included</li>
+          <li>Wayland &amp; X11 support</li>
+          <li>Powerful built-in apps</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DOWNLOAD -->
+<div class="download-section" id="download">
+  <div class="reveal">
+    <p class="section-tag">// Get GorillaOS</p>
+    <h2 class="section-title">Download &amp; Install</h2>
+    <p class="section-body" style="margin: 0 auto;">
+      Flash the ISO to a USB drive, boot from it, and follow the guided installer.
+      GorillaOS will be up and running in minutes.
+    </p>
+  </div>
+
+  <div class="download-box reveal">
+    <div class="download-version">Latest Release · Rolling</div>
+    <div class="download-name">GorillaOS ISO</div>
+    <div class="download-meta">
+      <span>Arch Linux Base</span>
+      <span>CachyOS Kernel</span>
+      <span>GNOME + KDE</span>
+      <span>x86_64</span>
+    </div>
+
+    <a href="https://fuckingfast.net/4d7moq9l6bua" class="btn-download" id="download-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Download GorillaOS
+    </a>
+
+    <ul class="download-checklist">
+      <li>Free &amp; open source forever</li>
+      <li>CachyOS optimized kernel included</li>
+      <li>Choose GNOME or KDE at install time</li>
+      <li>Guided installer — no Arch experience needed</li>
+      <li>Rolling release — install once, update forever</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- ABOUT -->
+<div id="about" style="background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="about-section">
+    <div class="reveal">
+      <p class="section-tag">// The Team</p>
+      <h2 class="section-title">Built by 🦍</h2>
+      <p class="section-body">
+        GorillaOS is a collaboration between two people who just wanted a fast,
+        clean, unbloated Linux experience and decided to build it themselves.
+      </p>
+    </div>
+
+    <div class="about-grid reveal">
+
+      <!-- RiderX9 -->
+      <div class="about-card">
+        <div class="about-avatar">🦍</div>
+        <div class="about-handle">RiderX9</div>
+        <div class="about-role">Creator & Lead Developer</div>
+        <p class="about-bio">
+          The mind behind GorillaOS. A Linux enthusiast on a mission to build
+          the distro he always wanted — lean, fast, and unapologetically gorilla-themed.
+        </p>
+        <div class="about-links">
+          <a href="https://youtube.com/@riderwx9" class="about-link" target="_blank">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23 7s-.3-2-1.2-2.8c-1.1-1.2-2.4-1.2-3-1.3C16.2 2.8 12 2.8 12 2.8s-4.2 0-6.8.1c-.6.1-1.9.1-3 1.3C1.3 5 1 7 1 7S.7 9.1.7 11.2v2c0 2.1.3 4.2.3 4.2s.3 2 1.2 2.8c1.1 1.2 2.6 1.1 3.3 1.2C7.5 21.6 12 21.6 12 21.6s4.2 0 6.8-.2c.6-.1 1.9-.1 3-1.3.9-.8 1.2-2.8 1.2-2.8s.3-2.1.3-4.2v-2C23.3 9.1 23 7 23 7zM9.7 15.5V8.4l8.1 3.6-8.1 3.5z"/></svg>
+            YouTube
+          </a>
+          <a href="https://github.com/RiderX9" class="about-link" target="_blank">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0112 6.8c.85.004 1.71.115 2.51.337 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10.01 10.01 0 0022 12c0-5.52-4.48-10-10-10z"/></svg>
+            GitHub
+          </a>
+          <a href="YOUR_SOCIAL_LINK" class="about-link" target="_blank">
+            ✦ More
+          </a>
+        </div>
+      </div>
+
+      <!-- Prf -->
+      <div class="about-card">
+        <div class="about-avatar">🔧</div>
+        <div class="about-handle">Prf</div>
+        <div class="about-role">Co-Developer & Collaborator</div>
+        <p class="about-bio">
+          The co-builder who helped bring GorillaOS to life. Working alongside RiderX9
+          to shape, test and improve the distro from the ground up.
+        </p>
+        <div class="about-links">
+          <a href="YOUR_PRF_LINK" class="about-link" target="_blank">
+            ✦ Profile coming soon
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">GorillaOS</div>
+  <div class="footer-sub">A passion project by RiderX9 · Arch-based · CachyOS Kernel</div>
+  <div class="footer-links">
+    <a href="#features">Features</a>
+    <a href="#desktop">Desktop</a>
+    <a href="#download">Download</a>
+    <a href="https://github.com/" target="_blank">GitHub</a>
+    <a href="#about">About</a>
+  </div>
+  <p class="footer-copy">Built with 🦍 by RiderX9 &amp; Prf · GorillaOS is not affiliated with Arch Linux or CachyOS.</p>
+</footer>
+
+<script>
+  // Theme toggle
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.querySelector('.theme-toggle').textContent = isDark ? '☾' : '☀';
+  }
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 100);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
